@@ -7,16 +7,42 @@
                 <h1>
                     code
                     <small>
-                        <a class="js-execute" href="#" title="F5">run</a>
+                        <a class="js-execute" href="#">run</a>
                         <a class="js-save" href="#" title="Ctrl+S">save</a>
                     </small>
                 </h1>
             </div>
-
-            <div class="editor">
-                <textarea>@Model.Post.Content</textarea>
+            
+            <div class="metro-pivot">
+                <div class="pivot-item">
+                    <h3>execute</h3>
+                    <div class="editor">
+                        <textarea>@Model.Post.Content</textarea>
+                    </div>
+                </div>
+                
+                <div class="pivot-item">
+                    <h3>class #1</h3>
+                    <div class="editor">
+                        <textarea>@Model.Post.Content</textarea>
+                    </div>
+                </div>
+                
+                <div class="pivot-item">
+                    <h3>class #2</h3>
+                    <div class="editor">
+                        <textarea>@Model.Post.Content</textarea>
+                    </div>
+                </div>
+                
+                <div class="pivot-item">
+                    <h3>class #3</h3>
+                    <div class="editor">
+                        <textarea>@Model.Post.Content</textarea>
+                    </div>
+                </div>
             </div>
-
+            
             <div class="messages">
                 <ul>
                     @if (!Model.Errors.Any())
@@ -45,3 +71,11 @@
         @Html.Partial("_About")
     </div>
 </div>
+
+@section PageScripts {
+    <script>
+        $(function() {
+            $(".metro-pivot").metroPivot();
+        });
+    </script>
+}
