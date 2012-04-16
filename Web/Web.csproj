@@ -193,6 +193,7 @@
     <Compile Include="Infrastructure\DependencyInjection\RedisModule.cs" />
     <Compile Include="Infrastructure\Extensions\RouteCollectionExtensions.cs" />
     <Compile Include="Infrastructure\LowercaseRoute.cs" />
+    <Compile Include="Models\ValidateViewModel.cs" />
     <Compile Include="Services\JobDoneMessageRelay.cs" />
     <Compile Include="Infrastructure\TaskAsyncHelper.cs" />
     <Compile Include="Models\Envelope.cs" />
@@ -214,6 +215,7 @@
     <Content Include="Assets\img\appharbor.png" />
     <Content Include="Assets\img\glyphicons-halflings-white.png" />
     <Content Include="Assets\img\glyphicons-halflings.png" />
+    <Content Include="Assets\js\Compilify.Models.js" />
     <Content Include="Assets\js\vendor\jquery.metro.js" />
     <Content Include="Assets\js\vendor\backbone-0.9.2.js" />
     <Content Include="Assets\js\vendor\jquery.signalr.js" />
@@ -253,7 +255,7 @@
     <None Include="Assets\fonts\Roboto-Regular-webfont.eot" />
     <None Include="Assets\fonts\Roboto-Regular-webfont.ttf" />
     <None Include="Assets\fonts\Roboto-Regular-webfont.woff" />
-    <Content Include="Views\Home\_About.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

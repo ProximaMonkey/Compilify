@@ -45,7 +45,7 @@ if (typeof String.prototype.trim !== 'function') {
         });
     }
 
-    var validate = function(code) {
+    function validate(command, classes) {
         /// <summary>
         /// Sends code to the server for validation and displays the resulting
         /// errors, if any.</summary>
@@ -56,12 +56,12 @@ if (typeof String.prototype.trim !== 'function') {
         return $.ajax('/validate', {
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ 'code': code }),
+            data: JSON.stringify({ 'Command': command, 'Classes': classes }),
             success: function(msg) {
                 var data = msg.data;
 
                 if (_.isArray(data)) {
-                    var $list = $('#define .messages ul').detach().empty();
+                    var $list = $('.messages ul').detach().empty();
 
                     if (data.length == 0) {
                         $list.append('<li class="message success">Build ' +
@@ -74,13 +74,13 @@ if (typeof String.prototype.trim !== 'function') {
                         }
                     }
 
-                    $('#define .messages').append($list);
+                    $('.messages').append($list);
                 }
             }
         });
-    };
+    }
 
-    function execute(code) {
+    function execute(command, classes) {
         /// <summary>
         /// Queues code for execution on the server.</summary>
         
@@ -124,19 +124,34 @@ if (typeof String.prototype.trim !== 'function') {
         
         // Get the editor and save the current content so we can tell when it 
         // changes
-        var editor = $('#define .editor textarea')[0];
+        var editor = $('#define .editor textarea')[0],
+            prompt = $('#execute .editor textarea')[0];
+
+        var validateEnvironment = _.debounce(function() {
+            var classes = Compilify.Editor.getValue();
+            var command = Compilify.Prompt.getValue();
+
+            validate(command, classes);
+        }, 500);
         
         Compilify.Editor = root.CodeMirror.fromTextArea(editor, {
             indentUnit: 4,
             lineNumbers: true,
             theme: 'neat',
             mode: 'text/x-csharp',
-            onChange: _.debounce(function (sender) {
-                var code = sender.getValue().trim();
-                
-                // throttled to once every 500ms max
-                validate(code);
-            }, 500)
+            onChange: function () {
+                validateEnvironment();
+            }
+        });
+
+        Compilify.Prompt = root.CodeMirror.fromTextArea(prompt, {
+            indentUnit: 4,
+            lineNumbers: true,
+            theme: 'neat',
+            mode: 'text/x-csharp',
+            onChange: function () {
+                validateEnvironment();
+            }
         });
 
         Compilify.Editor.save = _.bind(function() {
@@ -151,13 +166,14 @@ if (typeof String.prototype.trim !== 'function') {
             return false;
         }, Compilify.Editor);
         
-        root.CodeMirror.commands["save"] = Compilify.Editor.save;
+        // root.CodeMirror.commands.save = Compilify.Editor.save;
         
         $('#define .js-save').on('click', Compilify.Editor.save);
 
         $('#define .js-execute').on('click', function() {
-            var code = Compilify.Editor.getValue().trim();
-            execute(code);
+            var command = Compilify.Editor.getValue().trim();
+            var classes = Compilify.Editor.getValue().trim();
+            execute(command, classes);
             return false;
         });
     });
