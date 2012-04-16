@@ -112,7 +112,7 @@ h1 {
 }
 
 .CodeMirror {
-    font-family: 'Droid Sans Mono', monospace;
+    font-family: 'Droid Sans Mono', 'Inconsolata', 'Monaco', 'Consolas', 'Andale Mono', 'Bitstream Vera Sans Mono', 'Courier New', Courier, monospace;
     font-size: 11px;
 }
 
