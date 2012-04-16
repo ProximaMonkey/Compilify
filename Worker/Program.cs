@@ -2,12 +2,13 @@
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BookSleeve;
 using Compilify.Services;
 using Newtonsoft.Json;
 using Roslyn.Scripting.CSharp;
-using ServiceStack.Redis;
 using NLog;
 
 namespace Compilify.Worker
@@ -74,19 +75,23 @@ namespace Compilify.Worker
         private static CodeExecuter Executer;
         private static CancellationTokenSource TokenSource;
 
-        private static void ProcessQueue() {
+        private static void ProcessQueue()
+        {
             Logger.Debug("ProcessQueue task {0} started.", Task.CurrentId);
 
             var stopWatch = new Stopwatch();
             var formatter = new ObjectFormatter(maxLineLength: 5120);
 
-            using (var connection = CreateOpenRedisConnection())
-            using (var client = connection.GetClient()) {
-                
+            using (var connection = OpenConnection())
+            {
+                connection.Error += (sender, e) => Logger.ErrorException(e.Cause, e.Exception);
+
+                connection.Wait(connection.Open());
+
                 while (true)
                 {
-                    var message = client.BlockingDequeueItemFromList("queue:execute", null);
-                
+                    var message = connection.Lists.BlockingRemoveFirst(0, new[] { "queue:execute" }, Int32.MaxValue).Result;
+
                     if (TokenSource.IsCancellationRequested)
                     {
                         Logger.Error("ProcessQueue task cancelled.");
@@ -97,14 +102,14 @@ namespace Compilify.Worker
                     {
                         Logger.Debug("Message received.");
 
-                        var messageBytes = Convert.FromBase64String(message);
-
-                        var command = ExecuteCommand.Deserialize(messageBytes);
+                        var command = ExecuteCommand.Deserialize(message.Item2);
 
                         Logger.Info("Executing: {0}", command.Code ?? string.Empty);
 
                         stopWatch.Start();
+
                         var result = Executer.Execute(command.Code, command.Classes);
+
                         stopWatch.Stop();
 
                         Logger.Info("Executed: {0}", command.Code ?? string.Empty);
@@ -117,7 +122,7 @@ namespace Compilify.Worker
                             duration = stopWatch.ElapsedMilliseconds
                         });
 
-                        var listeners = client.PublishMessage("workers:job-done:" + command.ClientId, response);
+                        var listeners = connection.Publish("workers:job-done:" + command.ClientId, Encoding.UTF8.GetBytes(response)).Result;
 
                         Logger.Debug("Response published to " + listeners + " listeners.");
 
@@ -129,20 +134,18 @@ namespace Compilify.Worker
             }
         }
 
-        private static IRedisClientsManager CreateOpenRedisConnection()
+        private static RedisConnection OpenConnection()
         {
-            var connectionString = ConfigurationManager.AppSettings["REDISTOGO_URL"] ?? "redis://localhost:6379";
-
+            var connectionString = ConfigurationManager.AppSettings["REDISTOGO_URL"];
             var uri = new Uri(connectionString);
             var password = uri.UserInfo.Split(':').LastOrDefault();
 
-#if !DEBUG
-            var host = string.Format("{0}@{1}:{2}", password ?? string.Empty, uri.Host, uri.Port);
-#else
-            var host = uri.Host;
-#endif
+            if (password != null)
+            {
+                return new RedisConnection(uri.Host, uri.Port, password: password, syncTimeout: 5000, ioTimeout: 5000);
+            }
 
-            return new PooledRedisClientManager(0, new[] { host });
+            return new RedisConnection(uri.Host, uri.Port, syncTimeout: 5000, ioTimeout: 5000);
         }
     }
 }
