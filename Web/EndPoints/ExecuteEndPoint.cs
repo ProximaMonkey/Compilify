@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Web.Mvc;
 using Compilify.Models;
 using Compilify.Web.Services;
@@ -23,7 +22,7 @@ namespace Compilify.Web.EndPoints
                               Classes = post.Classes
                           };
 
-            var message = Convert.ToBase64String(command.GetBytes());
+            var message = command.GetBytes();
 
             var gateway = DependencyResolver.Current.GetService<RedisConnectionGateway>();
             var redis = gateway.GetConnection();
