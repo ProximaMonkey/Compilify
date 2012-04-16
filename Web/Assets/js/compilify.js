@@ -141,28 +141,21 @@ if (typeof String.prototype.trim !== 'function') {
         }, 500);
         
         root.CodeMirror.commands.save = save;
+
+        var opts = {
+            indentUnit: 4,
+            lineNumbers: true,
+            theme: 'neat',
+            mode: 'text/x-csharp',
+            onChange: function() {
+                validateEnvironment();
+            }
+        };
         
-        Compilify.Editor = root.CodeMirror.fromTextArea(editor, {
-            indentUnit: 4,
-            lineNumbers: true,
-            theme: 'neat',
-            mode: 'text/x-csharp',
-            onChange: function () {
-                validateEnvironment();
-            }
-        });
-
-        Compilify.Prompt = root.CodeMirror.fromTextArea(prompt, {
-            indentUnit: 4,
-            lineNumbers: true,
-            theme: 'neat',
-            mode: 'text/x-csharp',
-            onChange: function () {
-                validateEnvironment();
-            }
-        });
-
+        Compilify.Editor = root.CodeMirror.fromTextArea(editor, opts);
         Compilify.Editor.save = save;
+
+        Compilify.Prompt = root.CodeMirror.fromTextArea(prompt, opts);
         Compilify.Prompt.save = save;
         
         $('#define .js-save').on('click', save);
