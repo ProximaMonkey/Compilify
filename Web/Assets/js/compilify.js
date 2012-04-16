@@ -84,9 +84,9 @@ if (typeof String.prototype.trim !== 'function') {
         /// <summary>
         /// Queues code for execution on the server.</summary>
         
-        if (_.isString(code) && code.length > 0) {
+        if (_.isString(command) && command.length > 0) {
             trackEvent('Code', 'Execute', window.location.pathname);
-            connection.send(code);
+            connection.send(JSON.stringify({ 'Content': command, 'Classes': classes }));
         }
     }
     
@@ -171,7 +171,7 @@ if (typeof String.prototype.trim !== 'function') {
         $('#define .js-save').on('click', Compilify.Editor.save);
 
         $('#define .js-execute').on('click', function() {
-            var command = Compilify.Editor.getValue().trim();
+            var command = Compilify.Prompt.getValue().trim();
             var classes = Compilify.Editor.getValue().trim();
             execute(command, classes);
             return false;

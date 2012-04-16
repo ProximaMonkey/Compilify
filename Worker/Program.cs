@@ -104,14 +104,14 @@ namespace Compilify.Worker
                         Logger.Info("Executing: {0}", command.Code ?? string.Empty);
 
                         stopWatch.Start();
-                        var result = Executer.Execute(command.Code);
+                        var result = Executer.Execute(command.Code, command.Classes);
                         stopWatch.Stop();
 
                         Logger.Info("Executed: {0}", command.Code ?? string.Empty);
 
-                        
                         var response = JsonConvert.SerializeObject(new {
                             code = command.Code,
+                            classes = command.Classes,
                             result = formatter.FormatObject(result), 
                             time = DateTime.UtcNow,
                             duration = stopWatch.ElapsedMilliseconds

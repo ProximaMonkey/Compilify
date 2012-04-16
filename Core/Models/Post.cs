@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Compilify.Models {
-
+namespace Compilify.Models
+{
     public class Post
     {
         public Post()
