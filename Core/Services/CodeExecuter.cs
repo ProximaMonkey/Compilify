@@ -49,7 +49,7 @@ namespace Compilify.Services
             
             var options = new CompilationOptions(assemblyKind: AssemblyKind.ConsoleApplication, usings: ReadOnlyArray<string>.CreateFrom(Namespaces));
 
-            var compilation = Compilation.Create("foo", options,
+            var compilation = Compilation.Create(Guid.NewGuid().ToString("N"), options,
                 new[]
                 {
                     SyntaxTree.ParseCompilationUnit(EntryPoint),

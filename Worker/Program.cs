@@ -21,6 +21,9 @@ namespace Compilify.Worker
 
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledApplicationException;
 
+            TaskScheduler.UnobservedTaskException += 
+                (sender, e) => Logger.ErrorException("An unobserved task exception occurred", e.Exception);
+
             Executer = new CodeExecuter();
             TokenSource = new CancellationTokenSource();
 
