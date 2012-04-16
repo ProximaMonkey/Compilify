@@ -113,7 +113,7 @@ h1 {
 
 .CodeMirror {
     font-family: 'Droid Sans Mono', monospace;
-    font-size: 13px;
+    font-size: 11px;
 }
 
 .editor, #results pre {
