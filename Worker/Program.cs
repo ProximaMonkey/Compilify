@@ -77,7 +77,7 @@ namespace Compilify.Worker
 
         private static void ProcessQueue()
         {
-            Logger.Debug("ProcessQueue task {0} started.", Task.CurrentId);
+            Logger.Info("ProcessQueue task {0} started.", Task.CurrentId);
 
             var stopWatch = new Stopwatch();
             var formatter = new ObjectFormatter(maxLineLength: 5120);
@@ -88,49 +88,35 @@ namespace Compilify.Worker
 
                 connection.Wait(connection.Open());
 
-                while (true)
+                while (!TokenSource.IsCancellationRequested)
                 {
-                    var message = connection.Lists.BlockingRemoveFirst(0, new[] { "queue:execute" }, Int32.MaxValue).Result;
+                    var message = connection.Lists.BlockingRemoveFirst(0, new[] { "queue:execute" }, Int32.MaxValue);
 
-                    if (TokenSource.IsCancellationRequested)
-                    {
-                        Logger.Error("ProcessQueue task cancelled.");
-                        break;
-                    } 
+                    var command = ExecuteCommand.Deserialize(message.Result.Item2);
 
-                    if (message != null)
-                    {
-                        Logger.Debug("Message received.");
+                    stopWatch.Start();
 
-                        var command = ExecuteCommand.Deserialize(message.Item2);
+                    var result = Executer.Execute(command.Code, command.Classes);
 
-                        Logger.Info("Executing: {0}", command.Code ?? string.Empty);
+                    stopWatch.Stop();
 
-                        stopWatch.Start();
+                    var response = JsonConvert.SerializeObject(new
+                                   {
+                                       code = command.Code,
+                                       classes = command.Classes,
+                                       result = formatter.FormatObject(result), 
+                                       time = DateTime.UtcNow,
+                                       duration = stopWatch.ElapsedMilliseconds
+                                   });
 
-                        var result = Executer.Execute(command.Code, command.Classes);
+                    var responseBytes = Encoding.UTF8.GetBytes(response);
 
-                        stopWatch.Stop();
+                    connection.Wait(connection.Publish("workers:job-done:" + command.ClientId, responseBytes));
 
-                        Logger.Info("Executed: {0}", command.Code ?? string.Empty);
-
-                        var response = JsonConvert.SerializeObject(new {
-                            code = command.Code,
-                            classes = command.Classes,
-                            result = formatter.FormatObject(result), 
-                            time = DateTime.UtcNow,
-                            duration = stopWatch.ElapsedMilliseconds
-                        });
-
-                        var listeners = connection.Publish("workers:job-done:" + command.ClientId, Encoding.UTF8.GetBytes(response)).Result;
-
-                        Logger.Debug("Response published to " + listeners + " listeners.");
-
-                        stopWatch.Reset();
-                    }
+                    stopWatch.Reset();
                 }
 
-                Logger.Debug("ProcessQueue task ending.");
+                Logger.Error("ProcessQueue task {0} cancelled.", Task.CurrentId);
             }
         }
 
