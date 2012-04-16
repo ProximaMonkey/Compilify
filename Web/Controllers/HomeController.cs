@@ -23,12 +23,40 @@ namespace Compilify.Web.Controllers
 
         public ActionResult Index()
         {
-            var builder = new StringBuilder();
-            builder.AppendLine("// The value returned is displayed in the results panel below");
-            builder.AppendLine("return \"Hello, world!\";");
-            var code = builder.ToString();
+            var classesBuilder = new StringBuilder();
+
+            classesBuilder.AppendLine("public interface IPerson");
+            classesBuilder.AppendLine("{");
+            classesBuilder.AppendLine("    string Name { get; }");
+            classesBuilder.AppendLine();
+            classesBuilder.AppendLine("    string Greet();");
+            classesBuilder.AppendLine("}");
+            classesBuilder.AppendLine();
+            classesBuilder.AppendLine("class Person : IPerson");
+            classesBuilder.AppendLine("{");
+            classesBuilder.AppendLine("    public Person(string name)");
+            classesBuilder.AppendLine("    {");
+            classesBuilder.AppendLine("        Name = name;");
+            classesBuilder.AppendLine("    }");
+            classesBuilder.AppendLine();
+            classesBuilder.AppendLine("    public string Name { get; private set; }");
+            classesBuilder.AppendLine();
+            classesBuilder.AppendLine("    public string Greet()");
+            classesBuilder.AppendLine("    {");
+            classesBuilder.AppendLine("        if (Name == null)");
+            classesBuilder.AppendLine("            return \"Hello, stranger!\";");
+            classesBuilder.AppendLine();
+            classesBuilder.AppendLine("        return string.Format(\"Hello, {0}!\", Name);");
+            classesBuilder.AppendLine("    }");
+            classesBuilder.AppendLine("}");
             
-            var post = new Post { Content = code };
+            var commandBuilder = new StringBuilder();
+
+            commandBuilder.AppendLine("IPerson person = new Person(name: null);");
+            commandBuilder.AppendLine("");
+            commandBuilder.AppendLine("return person.Greet();");
+            
+            var post = new Post { Content = commandBuilder.ToString(), Classes = classesBuilder.ToString() };
 
             var viewModel = new PostViewModel
                             {
