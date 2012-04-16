@@ -31,18 +31,24 @@ if (typeof String.prototype.trim !== 'function') {
         }
     }
     
-    function save(code) {
+    function save() {
         /// <summary>
         /// Save content.</summary>
         var pathname = window.location.pathname;
-        
+
+        var command = Compilify.Prompt.getValue().trim();
+        var classes = Compilify.Editor.getValue().trim();
+
         trackEvent('Code', 'Save', pathname);
 
         return $.ajax(pathname, {
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ post: { Content: code } })
-        });
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ post: { 'Content': command, 'Classes': classes } })
+                })
+                .done(function(msg) {
+                    root.history.pushState({ }, '', msg.data.url);
+                });;
     }
 
     function validate(command, classes) {
@@ -134,6 +140,8 @@ if (typeof String.prototype.trim !== 'function') {
             validate(command, classes);
         }, 500);
         
+        root.CodeMirror.commands.save = save;
+        
         Compilify.Editor = root.CodeMirror.fromTextArea(editor, {
             indentUnit: 4,
             lineNumbers: true,
@@ -154,21 +162,10 @@ if (typeof String.prototype.trim !== 'function') {
             }
         });
 
-        Compilify.Editor.save = _.bind(function() {
-            var code = this.getValue().trim();
-
-            // Only save the content if it changed since we last loaded it.
-            save(code)
-                .done(function(msg) {
-                    root.history.pushState({ }, '', msg.data.url);
-                });
-
-            return false;
-        }, Compilify.Editor);
+        Compilify.Editor.save = save;
+        Compilify.Prompt.save = save;
         
-        // root.CodeMirror.commands.save = Compilify.Editor.save;
-        
-        $('#define .js-save').on('click', Compilify.Editor.save);
+        $('#define .js-save').on('click', save);
 
         $('#define .js-execute').on('click', function() {
             var command = Compilify.Prompt.getValue().trim();
